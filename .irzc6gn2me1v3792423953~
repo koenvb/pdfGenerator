@@ -1,0 +1,82 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.tables;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+
+
+public class TablesWriteSelected {
+
+	public static final String RESULT = "results/questions/tables/tables_columns_old.pdf";
+	public static final float TOTAL_WIDTH = 380;
+	
+	public static void main(String[] args) {
+		Document document = new Document(PageSize.A4.rotate());
+		try {
+			PdfWriter writer =
+				PdfWriter.getInstance(document, new FileOutputStream(RESULT));
+			
+			document.open();
+			
+			// the content of the columns
+			PdfPTable items = new PdfPTable(2);
+			items.setTotalWidth(TOTAL_WIDTH);
+			for (int i = 0; i < 100; ++i) {
+				items.addCell("item " + i);
+				items.addCell("some item");
+			}
+			int rows = items.size();
+			
+			// adding the stuff to the document
+			int column = 0;
+			int start;
+			int end = 0;
+			int row = 0;
+			float available = 0;
+			float[][] x = {
+					{ document.left(), document.left() + TOTAL_WIDTH },
+					{ document.right() - TOTAL_WIDTH, document.right() }
+				};
+			while (row < rows) {
+				start = row;
+				if (column == 0) {
+					PdfPTable table = new PdfPTable(1);
+					table.setWidthPercentage(100);
+					table.addCell("EmployeeSheets");
+					table.addCell("Page " + writer.getPageNumber());
+					document.add(table);
+					available = document.top() - table.getTotalHeight() - 10 - document.bottom();
+				}
+				float needed = items.getRowHeight(start);
+				while (needed < available && row < rows) {
+					needed += items.getRowHeight(++row);
+					end = row;
+				}
+				items.writeSelectedRows(start, end, x[column][0], document.bottom() + available, writer.getDirectContent());
+				if (++column >= x.length) {
+					column = 0;
+					document.newPage();
+				}
+			}
+		} catch (DocumentException de) {
+			System.err.println(de.getMessage());
+		} catch (IOException ioe) {
+			System.err.println(ioe.getMessage());
+		}
+		document.close();
+	}
+	
+}

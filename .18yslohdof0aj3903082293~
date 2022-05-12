@@ -1,0 +1,79 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.tables;
+
+import java.awt.Color;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class RotatedCells {
+	
+	public static final String RESULT = "results/questions/tables/rotated_cells.pdf";
+	
+	public static void main(String[] args) {
+		Document document = new Document();
+		try {
+			PdfWriter.getInstance(
+					document,
+					new FileOutputStream(RESULT));
+			document.open();
+
+			float[] widths = { 1, 4 };
+			PdfPTable table = new PdfPTable(widths);
+			table.setWidthPercentage(40);
+			PdfPCell cell;
+			cell = new PdfPCell(new Paragraph("test 1"));
+			cell.setPadding(4);
+			cell.setBackgroundColor(Color.YELLOW);
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			table.addCell(cell);
+			table.addCell("Cell without any rotation.");
+			
+			cell = new PdfPCell(new Paragraph("test 2"));
+			cell.setPadding(4);
+			cell.setBackgroundColor(Color.YELLOW);
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setRotation(90);
+			table.addCell(cell);
+			table.addCell("Cell rotated 90 degrees.");
+
+			cell = new PdfPCell(new Paragraph("test 3"));
+			cell.setPadding(4);
+			cell.setBackgroundColor(Color.YELLOW);
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setRotation(180);
+			table.addCell(cell);
+			table.addCell("Cell upside down.");
+
+			cell = new PdfPCell(new Paragraph("test 4"));
+			cell.setPadding(4);
+			cell.setBackgroundColor(Color.YELLOW);
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setRotation(270);
+			table.addCell(cell);
+			table.addCell("Cell rotated 270 degrees.");
+			document.add(table);
+		} catch (DocumentException de) {
+			System.err.println(de.getMessage());
+		} catch (IOException ioe) {
+			System.err.println(ioe.getMessage());
+		}
+
+		// step 5: we close the document
+		document.close();
+	}
+}

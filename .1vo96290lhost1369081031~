@@ -1,0 +1,100 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.importpages;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.PdfAction;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfCopy;
+import com.lowagie.text.pdf.PdfDestination;
+import com.lowagie.text.pdf.PdfOutline;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfStamper;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class ConcatenateWithTOC2 extends ConcatenateWithTOC {
+
+	public static final String RESULT =
+		"results/questions/importpages/concatenated_with_toc2.pdf";
+	
+	public static void main(String[] args) {
+		try {
+			// suppose we have some TEST PDF files
+			for (int i = 0; i < TEST.length; i++) {
+				createTestPdf(i);
+			}
+			// and we want to concatenate them
+			Document document = new Document();
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			PdfCopy copy = new PdfCopy(document, os);
+			copy.setViewerPreferences(PdfWriter.PageModeUseOutlines);
+			document.open();
+			// but we want to create an outline tree
+			PdfOutline root = copy.getRootOutline();
+			// we also want an extra page with the file name
+			Document coverpage;
+			ByteArrayOutputStream baos;
+			PdfReader reader;
+			// we want keep track of the page numbers
+			int pagenumber = 0;
+			for (int i = 0; i < TEST.length; i++) {
+				// we create the coverpage in memory
+				coverpage = new Document();
+				baos = new ByteArrayOutputStream();
+				PdfWriter.getInstance(coverpage, baos);
+				coverpage.open();
+				coverpage.add(new Paragraph("file: " + TEST[i]));
+				coverpage.close();
+				// we import that page
+				reader = new PdfReader(baos.toByteArray());
+				pagenumber++;
+				copy.addPage(copy.getImportedPage(reader, 1));
+				// we create the bookmark to that page
+				PdfDestination dest = new PdfDestination(PdfDestination.FIT);
+				new PdfOutline(root,
+						PdfAction.gotoLocalPage(pagenumber, dest, copy), TEST[i]);
+				// we import the document itself
+				reader = new PdfReader(TEST[i]);
+				for (int j = 1; j <= reader.getNumberOfPages(); j++) {
+					pagenumber++;
+					copy.addPage(copy.getImportedPage(reader, j));
+				}
+			}
+			document.close();
+			
+			// we want to add page X of Y
+			reader = new PdfReader(os.toByteArray());
+			int n = reader.getNumberOfPages();
+			PdfStamper stamper = new PdfStamper(reader, new FileOutputStream(RESULT));
+			BaseFont bf = BaseFont.createFont();
+			for (int i = 1; i <= n; i++) {
+				PdfContentByte canvas = stamper.getOverContent(i);
+				canvas.beginText();
+				canvas.setFontAndSize(bf, 12);
+				canvas.showTextAligned(Element.ALIGN_LEFT, "page " + i + " of " + n, 36, 26, 0);
+				canvas.endText();
+			}
+			stamper.close();
+		}
+		catch(IOException ioe) {
+			ioe.printStackTrace();
+		}
+		catch(DocumentException de) {
+			de.printStackTrace();
+		}
+	}
+}

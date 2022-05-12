@@ -1,0 +1,104 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.ocg;
+
+import java.awt.Color;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+
+import com.lowagie.text.BadElementException;
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Image;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.GrayColor;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfLayer;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfTemplate;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class StatusBars1 {
+
+	public static final String RESULT = "results/questions/ocg/statusbars1.pdf";
+	protected PdfLayer colorLayerColored;
+	protected PdfLayer colorLayerGreyed;
+	
+    public static void main(String args[]) {
+    	new StatusBars1().createPdf();
+    }
+    
+    public void createPdf() {
+        try {
+            Document document = new Document(PageSize.A4, 10, 10, 10, 10);
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(RESULT));
+
+            document.open();
+
+            //define Layers
+            
+            PdfLayer colorLayer = PdfLayer.createTitle("Color", writer);
+            colorLayerColored = new PdfLayer("Colored", writer);
+            colorLayerColored.setOn(true);
+            colorLayer.addChild(colorLayerColored);
+            colorLayerGreyed = new PdfLayer("Greyed", writer);
+            colorLayerGreyed.setOn(false);
+            colorLayer.addChild(colorLayerGreyed);
+            ArrayList<PdfLayer> radio = new ArrayList<PdfLayer>();
+            radio.add(colorLayerColored);
+            radio.add(colorLayerGreyed);
+            writer.addOCGRadioGroup(radio);
+
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(100);
+            PdfPCell cell;
+            for (int i = 0; i <= 100; i++) {
+            	cell = new PdfPCell(new Phrase("percentage: " + i));
+                table.addCell(cell);
+                cell = new PdfPCell(getImage(writer.getDirectContent(), i));
+                table.addCell(cell);
+            }
+            document.add(table);
+            document.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (DocumentException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public Image getImage(PdfContentByte cb, int i) throws BadElementException {
+    	PdfTemplate tmp = cb.createTemplate(100, 10);
+    	tmp.setBoundingBox(new Rectangle(-5, - 2, 105, 12));
+    	Rectangle r = new Rectangle(0, 0, 100, 10);
+    	tmp.rectangle(r);
+    	r = new Rectangle(0, 0, i, 10);
+    	tmp.beginLayer(colorLayerColored);
+    	if (i % 2 == 0)
+    		r.setBackgroundColor(Color.RED);
+    	else
+    		r.setBackgroundColor(Color.GREEN);
+    	tmp.rectangle(r);
+    	tmp.endLayer();
+    	tmp.beginLayer(colorLayerGreyed);
+    	r = new Rectangle(0, 0, i, 10);
+    	if (i % 2 == 0)
+    		r.setBackgroundColor(new GrayColor(10));
+    	else
+    		r.setBackgroundColor(new GrayColor(97));
+    	tmp.rectangle(r);
+    	tmp.endLayer();
+    	return Image.getInstance(tmp);
+    }
+}
+

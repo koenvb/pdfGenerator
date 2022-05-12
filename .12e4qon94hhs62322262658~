@@ -1,0 +1,74 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.tables;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class AutomaticExtensionOfTables {
+
+	public static final String[] RESULT = {
+		"results/questions/tables/nested_tables_a.pdf",
+		"results/questions/tables/nested_tables_b.pdf",
+		"results/questions/tables/nested_tables_c.pdf"
+	};
+	public static final int[] ROWS = { 20, 40, 90 };
+	
+	public static void main(String[] args) {
+		try {
+			createPdf(0);
+			createPdf(1);
+			createPdf(2);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void createPdf(int rows)
+		throws IOException, DocumentException {
+		Document document = new Document(PageSize.LETTER);
+		PdfWriter.getInstance(document,
+				new FileOutputStream(RESULT[rows]));
+		document.open();
+		PdfPTable outer = new PdfPTable(2);
+		outer.setExtendLastRow(true);
+		PdfPTable inner1 = new PdfPTable(5);
+		for (int i = 0; i < ROWS[rows]; i++) {
+			inner1.addCell("A" + i);
+			inner1.addCell("B" + i);
+			inner1.addCell("C" + i);
+			inner1.addCell("D" + i);
+			inner1.addCell("E" + i);
+		}
+		PdfPCell cell = new PdfPCell(inner1);
+		cell.setColspan(2);
+		outer.addCell(cell);
+		PdfPTable inner2 = new PdfPTable(5);
+		for (int i = 0; i < 20; i++) {
+			inner2.addCell("testA");
+		}
+		outer.addCell(inner2);
+		PdfPTable inner3 = new PdfPTable(3);
+		for (int i = 0; i < 20; i++) {
+			inner3.addCell("testB");
+		}
+		outer.addCell(inner3);
+		document.add(outer);
+		document.close();
+	}
+}

@@ -1,0 +1,80 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.stamppages;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfStamper;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class PageXofYRightAligned {
+
+	public static final String RESOURCE = "resources/questions/txt/caesar.txt";
+	public static final String RESULT = "results/questions/stamppages/pageXofY_right_aligned.pdf";
+	
+	public static void main(String[] args) {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try {
+			Document document = new Document();
+			PdfWriter.getInstance(document, baos);
+			document.open();
+			BufferedReader reader = new BufferedReader(new FileReader(RESOURCE));
+			String line;
+			Paragraph p;
+			while ((line = reader.readLine()) != null) {
+				p = new Paragraph(line);
+				p.setAlignment(Element.ALIGN_JUSTIFIED);
+				document.add(p);
+				document.newPage();
+			}
+			reader.close();
+			document.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			PdfReader reader = new PdfReader(baos.toByteArray());
+			int n = reader.getNumberOfPages();
+			PdfStamper stamper = new PdfStamper(reader, new FileOutputStream(RESULT));
+			PdfContentByte page;
+			Rectangle rect;
+			BaseFont bf = BaseFont.createFont();
+			for (int i = 1; i < n + 1; i++) {
+				page = stamper.getOverContent(i);
+				rect = reader.getPageSizeWithRotation(i);
+				page.beginText();
+				page.setFontAndSize(bf, 12);
+				page.showTextAligned(Element.ALIGN_RIGHT, "page " + i + " of " + n,
+						rect.getRight(36), rect.getTop(32), 0);
+				page.endText();
+			}
+			stamper.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+		
+	}
+}
