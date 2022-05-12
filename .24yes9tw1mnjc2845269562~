@@ -1,0 +1,61 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.directcontent;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class InterpretOCR {
+
+	public static final String RESOURCE = "resources/questions/txt/ocr.txt";
+	public static final String RESULT = "results/questions/directcontent/rendered_ocr.pdf";
+	
+	public static void main(String[] args) throws IOException, DocumentException {
+		Document document = new Document(PageSize.LETTER);
+		PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(RESULT));
+		document.open();
+		PdfContentByte cb = writer.getDirectContent();
+		BaseFont font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.WINANSI, BaseFont.NOT_EMBEDDED);
+		cb.beginText();
+		cb.setFontAndSize(font, 12);
+		String line;
+		String word;
+		@SuppressWarnings("unused")
+		float llx, lly, urx, ury;
+		StringTokenizer tokenizer;
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(RESOURCE)));
+        while ((line = reader.readLine()) != null) {
+        	tokenizer = new StringTokenizer(line);
+        	while (tokenizer.hasMoreTokens()) {
+        		tokenizer.nextToken();
+        		word = tokenizer.nextToken();
+        		llx = Float.parseFloat(tokenizer.nextToken() + "f") / 10;
+        		lly = document.top() - Float.parseFloat(tokenizer.nextToken() + "f") / 10;
+        		urx = Float.parseFloat(tokenizer.nextToken() + "f") / 10;
+        		ury = document.top() - Float.parseFloat(tokenizer.nextToken() + "f") / 10;
+        		cb.showTextAligned(Element.ALIGN_LEFT, word, (llx + urx) / 2, lly, 0);
+        	}
+        }
+        cb.endText();
+		document.close();
+	}
+}

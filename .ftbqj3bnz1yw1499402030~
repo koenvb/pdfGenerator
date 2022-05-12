@@ -1,0 +1,56 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.tables;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class RotateCell {
+
+	public static final String RESULT = "results/questions/tables/rotated_cell.pdf";
+	
+	public static void main(String[] args) {
+		Document document = new Document(PageSize.A4);
+		try {
+		  PdfWriter.getInstance(document,
+		  new FileOutputStream(RESULT));
+		  document.open();
+		  Paragraph paragraphA = new Paragraph();
+		  paragraphA.add(new Phrase("TestA"));
+		  Paragraph paragraphB = new Paragraph();
+		  paragraphB.add(new Phrase("\u00a0"));
+		  Paragraph paragraphC = new Paragraph();
+		  paragraphC.add(new Phrase("TestB"));
+
+		  PdfPTable table = new PdfPTable(1);
+		  PdfPCell cell = new PdfPCell();
+		  cell.addElement(paragraphA);
+		  cell.addElement(paragraphB);
+		  cell.addElement(paragraphC);
+		  cell.setRotation(90);
+		  table.addCell(cell);
+		  
+		  document.add(table);
+		} catch (DocumentException de) {
+		  System.err.println(de.getMessage());
+		} catch (IOException ioe) {
+		  System.err.println(ioe.getMessage());
+		}
+		document.close();
+	}
+}

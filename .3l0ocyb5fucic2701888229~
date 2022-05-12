@@ -1,0 +1,38 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.images;
+
+import java.awt.Color;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Image;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.PdfWriter;
+
+
+public class TransparentPng {
+
+	public static final String RESULT = "results/questions/images/transparent_png.pdf";
+	public static final String IMAGE = "resources/questions/img/metropole.png";
+	
+	public static final void main(String[] args) throws IOException, DocumentException {
+		Image img = Image.getInstance(IMAGE);
+		Rectangle rectangle = new Rectangle(img);
+		rectangle.setBackgroundColor(Color.YELLOW);
+		Document document = new Document(rectangle);
+		PdfWriter.getInstance(document, new FileOutputStream(RESULT));
+		document.open();
+		img.setAbsolutePosition(0, 0);
+		document.add(img);
+		document.close();
+	}
+}

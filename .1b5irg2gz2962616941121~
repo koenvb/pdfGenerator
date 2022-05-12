@@ -1,0 +1,137 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.javascript;
+
+import java.awt.Color;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.AcroFields;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.PdfAction;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfDictionary;
+import com.lowagie.text.pdf.PdfFormField;
+import com.lowagie.text.pdf.PdfName;
+import com.lowagie.text.pdf.PdfObject;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfStamper;
+import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.PushbuttonField;
+import com.lowagie.text.pdf.RadioCheckField;
+import com.lowagie.text.pdf.TextField;
+import com.lowagie.text.pdf.AcroFields.Item;
+
+public class AddJavaScriptToForm {
+
+	public static final String FORM = "results/questions/javascript/form_without_js.pdf";
+	public static final String RESULT = "results/questions/javascript/form_with_js.pdf";
+
+	public static void main(String[] args) throws DocumentException, IOException {
+		createPdf(FORM);
+		addJavaScript(FORM, RESULT);
+	}
+	
+	public static void createPdf(String filename) throws IOException, DocumentException {
+		Document document = new Document();
+		PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(filename));
+		document.open();
+
+		BaseFont bf = BaseFont.createFont();
+		PdfContentByte directcontent = writer.getDirectContent();
+		directcontent.beginText();
+		directcontent.setFontAndSize(bf, 12);
+		directcontent.showTextAligned(Element.ALIGN_LEFT, "Married?", 36, 770, 0);
+		directcontent.showTextAligned(Element.ALIGN_LEFT, "YES", 58, 750, 0);
+		directcontent.showTextAligned(Element.ALIGN_LEFT, "NO", 102, 750, 0);
+		directcontent.showTextAligned(Element.ALIGN_LEFT, "Name partner?", 36, 730, 0);
+		directcontent.endText();
+		
+		PdfFormField married = PdfFormField.createRadioButton(writer, true);
+		married.setFieldName("married");
+		married.setValueAsName("yes");
+		Rectangle rectYes = new Rectangle(40, 766, 56, 744);
+		RadioCheckField yes = new RadioCheckField(writer, rectYes, null, "yes");
+		yes.setChecked(true);
+		married.addKid(yes.getRadioField());
+		Rectangle rectNo = new Rectangle(84, 766, 100, 744);
+		RadioCheckField no = new RadioCheckField(writer, rectNo, null, "no");
+		no.setChecked(false);
+		married.addKid(no.getRadioField());
+		writer.addAnnotation(married);
+
+		Rectangle rect = new Rectangle(40, 710, 200, 726);
+		TextField partner = new TextField(writer, rect, "partner");
+		partner.setBorderColor(Color.BLACK);
+		partner.setBorderWidth(0.5f);
+		writer.addAnnotation(partner.getTextField());
+		
+		document.close();
+	}
+	
+	public static void addJavaScript(String input, String output) throws IOException, DocumentException {
+		PdfReader reader = new PdfReader(input);
+		PdfStamper stamper = new PdfStamper(reader,	new FileOutputStream(output));
+		stamper.getWriter().addJavaScript(
+				"function setReadOnly(readonly) {"
+				+ "var partner = this.getField('partner');"
+				+ "if(readonly) {"
+				+ "partner.value = '';"
+				+ "}"
+				+ "partner.readonly = readonly;"
+				+" }"
+				+ "function validate() {"
+				+ "var married = this.getField('married');"
+				+ "var partner = this.getField('partner');"
+				+ "if (married.value == 'yes' && partner.value == '') {"
+				+ "app.alert('please enter the name of your partner');"
+				+ "}"
+				+ "else {"
+				+ "this.submitForm({"
+				+ " cURL:\"http://1t3xt.info/examples/request.php\","
+				+ " cSubmitAs: \"HTML\""
+				+ "});"
+				+ "}"
+				+" }");
+		AcroFields form = stamper.getAcroFields();
+        Item fd = form.getFieldItem("married");
+        
+        PdfDictionary dictYes =
+        	(PdfDictionary) PdfReader.getPdfObject((PdfObject) fd.getWidgetRef(0));
+        PdfDictionary yesAction = dictYes.getAsDict(PdfName.AA);
+        if (yesAction == null) yesAction = new PdfDictionary();
+        yesAction.put(new PdfName("Fo"),
+        		PdfAction.javaScript("setReadOnly(false);", stamper.getWriter()));
+        dictYes.put(PdfName.AA, yesAction);
+        
+        PdfDictionary dictNo =
+        	(PdfDictionary) PdfReader.getPdfObject((PdfObject) fd.getWidgetRef(1));
+        PdfDictionary noAction = dictNo.getAsDict(PdfName.AA);
+        if (noAction == null) noAction = new PdfDictionary();
+        noAction.put(new PdfName("Fo"),
+        		PdfAction.javaScript("setReadOnly(true);", stamper.getWriter()));
+        dictNo.put(PdfName.AA, noAction);
+        
+		PdfWriter writer = stamper.getWriter();
+		PushbuttonField button = new PushbuttonField(writer,
+				new Rectangle(40, 690, 200, 710), "submit");
+		button.setText("validate and submit");
+		button.setOptions(PushbuttonField.VISIBLE_BUT_DOES_NOT_PRINT);
+		PdfFormField validateAndSubmit = button.getField();
+		validateAndSubmit.setAction(PdfAction.javaScript("validate();", stamper.getWriter()));
+		stamper.addAnnotation(validateAndSubmit, 1);
+		
+		stamper.close();
+	}
+	
+}

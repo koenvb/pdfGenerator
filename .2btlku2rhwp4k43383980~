@@ -1,0 +1,61 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.images;
+
+import java.awt.Color;
+import java.awt.Toolkit;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Image;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class MakingImageTransparent {
+
+	public static final String GIF = "resources/questions/img/handwritten.gif";
+	public static final String JPG = "resources/questions/img/handwritten.jpg";
+	public static final String RESULT = "results/questions/images/transparent_images.pdf";
+	
+	public static void main(String args[]) {
+		try {
+			Rectangle rect;
+			// GIF Image
+			Image gif = Image.getInstance(GIF);
+			gif.setAbsolutePosition(0, 0);
+			gif.setTransparency(new int[]{0x5B,0x5D});
+			rect = new Rectangle(gif.getScaledWidth(), gif.getScaledHeight());
+			rect.setBackgroundColor(Color.YELLOW);
+			
+			Document document = new Document(rect);
+			PdfWriter.getInstance(document, new FileOutputStream(RESULT));
+			document.open();
+			document.add(gif);
+			
+			// JPEG Image
+			java.awt.Image awtImage = Toolkit.getDefaultToolkit().createImage(JPG);
+			Image jpg = Image.getInstance(awtImage, null, true);
+			jpg.setTransparency(new int[]{0xF0,0xFF});
+			jpg.setAbsolutePosition(0, 0);
+			rect = new Rectangle(jpg.getScaledWidth(), jpg.getScaledHeight());
+			rect.setBackgroundColor(Color.YELLOW);
+			
+			document.setPageSize(rect);
+			document.newPage();
+			document.add(jpg);
+			document.close();
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+}

@@ -1,0 +1,122 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.importpages;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.PdfAction;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfCopy;
+import com.lowagie.text.pdf.PdfDestination;
+import com.lowagie.text.pdf.PdfImportedPage;
+import com.lowagie.text.pdf.PdfOutline;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.PdfCopy.PageStamp;
+
+public class ConcatenateWithTOC {
+
+	public static final String[] TEST = {
+		"results/questions/importpages/helloworld.pdf",
+		"results/questions/importpages/hellosun.pdf",
+		"results/questions/importpages/hellomoon.pdf"
+	};
+	public static final String RESULT =
+		"results/questions/importpages/concatenated_with_toc.pdf";
+	
+	public static void main(String[] args) {
+		try {
+			// suppose we have some TEST PDF files
+			for (int i = 0; i < TEST.length; i++) {
+				createTestPdf(i);
+			}
+			// and we want to concatenate them
+			Document document = new Document();
+			PdfCopy copy = new PdfCopy(document, new FileOutputStream(RESULT));
+			copy.setViewerPreferences(PdfWriter.PageModeUseOutlines);
+			document.open();
+			// but we want to create an outline tree
+			PdfOutline root = copy.getRootOutline();
+			// we also want an extra page with the file name
+			Document coverpage;
+			ByteArrayOutputStream baos;
+			PdfReader reader;
+			// we want to add page numbers too
+			int pagenumber = 0;
+			BaseFont bf = BaseFont.createFont();
+			for (int i = 0; i < TEST.length; i++) {
+				// we create the coverpage in memory
+				coverpage = new Document();
+				baos = new ByteArrayOutputStream();
+				PdfWriter.getInstance(coverpage, baos);
+				coverpage.open();
+				coverpage.add(new Paragraph("file: " + TEST[i]));
+				coverpage.close();
+				// we import that page
+				reader = new PdfReader(baos.toByteArray());
+				pagenumber++;
+				copy.addPage(getStampedPage(reader, copy, 1, pagenumber, bf));
+				// we create the bookmark to that page
+				PdfDestination dest = new PdfDestination(PdfDestination.FIT);
+				new PdfOutline(root,
+						PdfAction.gotoLocalPage(pagenumber, dest, copy), TEST[i]);
+				// we import the document itself
+				reader = new PdfReader(TEST[i]);
+				for (int j = 1; j <= reader.getNumberOfPages(); j++) {
+					pagenumber++;
+					copy.addPage(getStampedPage(reader, copy, j, pagenumber, bf));
+				}
+			}
+			document.close();
+		}
+		catch(IOException ioe) {
+			ioe.printStackTrace();
+		}
+		catch(DocumentException de) {
+			de.printStackTrace();
+		}
+	}
+	
+	public static PdfImportedPage getStampedPage(PdfReader reader,
+			PdfCopy copy, int oldP, int newP, BaseFont bf) throws IOException {
+		PdfImportedPage page = copy.getImportedPage(reader, oldP);
+		PageStamp pagestamp = copy.createPageStamp(page);
+		PdfContentByte canvas = pagestamp.getOverContent();
+		canvas.beginText();
+		canvas.setFontAndSize(bf, 12);
+		canvas.showTextAligned(Element.ALIGN_LEFT, "page " + newP, 36, 26, 0);
+		canvas.endText();
+		pagestamp.alterContents();
+		return page;
+	}
+	
+	public static void createTestPdf(int i) throws IOException, DocumentException {
+		Document document = new Document();
+		PdfWriter.getInstance(document, new FileOutputStream(TEST[i]));
+		document.open();
+		switch(i) {
+		case 1:
+			document.add(new Paragraph("Hello Sun"));
+			break;
+		case 2:
+			document.add(new Paragraph("Hello Moon"));
+			break;
+		default:
+			document.add(new Paragraph("Hello World"));
+		}
+		document.close();
+	}
+}

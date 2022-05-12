@@ -1,0 +1,65 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.fonts;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class EncodingFont {
+
+	public static final String RESULT = "results/questions/fonts/encoding.pdf";
+	
+	public static void main(String[] args) {
+		Document document = new Document();
+		try {
+			PdfWriter.getInstance(document, new FileOutputStream(RESULT));
+			document.open();
+			String cp1252String, cp1250String, cp1253String;
+			Font cp1252Font, cp1250Font, cp1253Font;
+
+			document.add(new Paragraph("The importance of using the right encoding!"));
+			document.add(new Paragraph("CORRECT:"));
+			// CP1252
+			cp1252String = "CP1252: 'Un long dimanche de fian\u00e7ailles'";
+			cp1252Font = FontFactory.getFont("c:/windows/fonts/arial.ttf",
+					"Cp1252", BaseFont.EMBEDDED, 12);
+			document.add(new Paragraph(cp1252String, cp1252Font));
+			// CP1250
+			cp1250String = "CP1250: 'Nikogar\u0161nja zemlja'";
+			cp1250Font = FontFactory.getFont("c:/windows/fonts/arial.ttf",
+					"Cp1250", BaseFont.EMBEDDED, 12);
+			document.add(new Paragraph(cp1250String, cp1250Font));
+			// CP1253
+			cp1253String = "CP1253: '\u039D\u03cd\u03c6\u03b5\u03c2'";
+			cp1253Font = FontFactory.getFont("c:/windows/fonts/arial.ttf",
+					"Cp1253", BaseFont.EMBEDDED, 12);
+			document.add(new Paragraph(cp1253String, cp1253Font));
+			// The right String with the wrong encoding
+			document.add(new Paragraph("POSSIBLY WRONG:"));
+			document.add(new Paragraph(cp1252String + " (1250)", cp1250Font));
+			document.add(new Paragraph(cp1252String + " (1253)", cp1253Font));
+			document.add(new Paragraph(cp1250String + " (1252)", cp1252Font));
+			document.add(new Paragraph(cp1250String + " (1253)", cp1253Font));
+			document.add(new Paragraph(cp1253String + " (1252)", cp1252Font));
+			document.add(new Paragraph(cp1253String + " (1250)", cp1250Font));
+		} catch (DocumentException de) {
+			System.err.println(de.getMessage());
+		} catch (IOException ioe) {
+			System.err.println(ioe.getMessage());
+		}
+		document.close();
+	}
+}

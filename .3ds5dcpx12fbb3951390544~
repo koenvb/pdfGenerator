@@ -1,0 +1,75 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.graphics2D;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class SplitCanvasDifficult {
+	
+	public static final String RESULT = "results/questions/graphics2d/split_rectangle.pdf";
+	
+	public static void main(String[] args) {
+		Document document = new Document();
+		try {
+			document.setPageSize(new Rectangle(100 ,100));
+			PdfWriter writer = PdfWriter.getInstance(document , new FileOutputStream(RESULT));
+			document.open();
+			// create the canvas for the complete drawing:
+			PdfContentByte directContent = writer.getDirectContentUnder();
+			Graphics2D g2d;
+			// distribute the image over 4 pages:
+			g2d = directContent.createGraphicsShapes(100, 100);
+			g2d.setPaint(new Color(255,150,150));
+			g2d.setStroke(new BasicStroke(5.0f));
+			g2d.drawLine(25, 25, 25, 100);
+			g2d.drawLine(25, 25, 100, 25);
+			g2d.dispose();
+			document.newPage();
+			g2d = directContent.createGraphicsShapes(100, 100);
+			g2d.setPaint(new Color(255,150,150));
+			g2d.setStroke(new BasicStroke(5.0f));
+			g2d.drawLine(0, 25, 75, 25);
+			g2d.drawLine(75, 25, 75, 100);
+			g2d.dispose();
+			document.newPage();
+			g2d = directContent.createGraphicsShapes(100, 100);
+			g2d.setPaint(new Color(255,150,150));
+			g2d.setStroke(new BasicStroke(5.0f));
+			g2d.drawLine(25, 0, 25, 75);
+			g2d.drawLine(25, 75, 100, 75);
+			g2d.dispose();
+			document.newPage();
+			g2d = directContent.createGraphicsShapes(100, 100);
+			g2d.setPaint(new Color(255,150,150));
+			g2d.setStroke(new BasicStroke(5.0f));
+			g2d.drawLine(0, 75, 75, 75);
+			g2d.drawLine(75, 0, 75, 75);
+			g2d.dispose();
+		}
+		catch (DocumentException de) {
+			de.printStackTrace();
+			return;
+		}
+		catch (IOException ioe) {
+			ioe.printStackTrace();
+			return;
+		}
+		document.close();
+	}
+}

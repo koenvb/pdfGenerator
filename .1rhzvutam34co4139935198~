@@ -1,0 +1,51 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.stamppages;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.pdf.PdfAction;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfDestination;
+import com.lowagie.text.pdf.PdfOutline;
+import com.lowagie.text.pdf.PdfPageEventHelper;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class ParagraphBookmarkEvents extends PdfPageEventHelper {
+
+	/** Keeps the number of the current paragraph. */
+	private int n = 0;
+
+	private boolean named;
+	
+	public ParagraphBookmarkEvents(boolean named) {
+		this.named = named;
+	}
+	
+	/**
+	 * Adds an outline for every new Paragraph
+	 * 
+	 * @param writer
+	 * @param document
+	 * @param position
+	 */
+	public void onParagraph(PdfWriter writer, Document document, float position) {
+		n++;
+		PdfContentByte cb = writer.getDirectContent();
+		PdfOutline root = cb.getRootOutline();
+		PdfDestination destination = new PdfDestination(PdfDestination.FITH, position);
+		if (named) {
+			cb.localDestination("p" + n, destination);
+			new PdfOutline(root,
+					PdfAction.gotoLocalPage("p" + n, false), "paragraph " + n);
+		}
+		else {
+			new PdfOutline(root, destination, "paragraph " + n);
+		}
+	}
+}

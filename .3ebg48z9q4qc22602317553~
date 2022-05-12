@@ -1,0 +1,93 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.graphics2D;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Font;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.ColumnText;
+import com.lowagie.text.pdf.FontMapper;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class ArabicText {
+	
+	public static final String RESULT = "results/questions/graphics2d/arabic_text.pdf";
+	
+    public static void main(String[] args) {
+        Document document = new Document(PageSize.A4);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(RESULT));
+            document.open();
+            String text1 = "\u0634\u0627\u062f\u062c\u0645\u0647\u0648\u0631";
+            String text2 = "\u0634";
+            java.awt.Font font = new java.awt.Font("arial", 0, 12);
+            PdfContentByte cb = writer.getDirectContent();
+            
+            java.awt.Graphics2D g2Shapes = cb.createGraphicsShapes(PageSize.A4.getWidth(), PageSize.A4.getHeight());
+            g2Shapes.setFont(font);
+            g2Shapes.drawString("text1, expected to render RTL", 50,100);
+            g2Shapes.drawString(text1, 50, 120);
+            g2Shapes.drawString("text2, expected to match right-most glyph above",50,140);
+            g2Shapes.drawString(text2, 50, 160);
+            g2Shapes.dispose();
+            
+            ColumnText text = new ColumnText(cb);
+            Font f = new Font(
+            	BaseFont.createFont("c://windows/fonts/arialuni.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED),
+            	12);
+            text.setSimpleColumn(50, 620, 545, 50);
+			text.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+            text.setText(new Phrase(text1, f));
+            text.go();
+            text.setText(new Phrase(text2, f));
+            text.go();
+            
+            FontMapper arialuni = new FontMapper() {
+				public BaseFont awtToPdf(java.awt.Font font) {
+					try {
+						return BaseFont.createFont(
+								"c:/windows/fonts/arialuni.ttf",
+								BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+					} catch (DocumentException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					return null;
+				}
+
+				public java.awt.Font pdfToAwt(BaseFont font, int size) {
+					return null;
+				}
+				
+			};
+            java.awt.Graphics2D g = cb.createGraphics(PageSize.A4.getWidth(), PageSize.A4.getHeight(), arialuni);
+            g.setFont(null);
+            g.drawString("text1, not expected to render RTL", 50,180);
+            g.drawString(text1, 50, 200);
+            g.drawString("text2, not expected to match right-most glyph above",50,220);
+            g.drawString(text2, 50, 240);
+            g.drawString("to your right you see what it SHOULD look like:",50,260);
+            g.drawString("If it doesn't, the problem is in the JDK, it's not an iText problem.",50,280);
+            g.dispose();
+            document.close();
+        }
+        catch (Exception de) {
+            de.printStackTrace();
+        }
+    }
+
+}

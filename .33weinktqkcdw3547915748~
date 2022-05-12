@@ -1,0 +1,93 @@
+package questions.graphics2D;
+
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.DefaultFontMapper;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfTemplate;
+import com.lowagie.text.pdf.PdfWriter;
+
+public class JFreeChartExample {
+	
+	public static final String RESULT = "results/questions/graphics2d/jfreechart.pdf";
+	
+	public static void main(String[] args) {
+		// step 1
+		Document document = new Document();
+		try {
+			// step 2
+			PdfWriter writer;
+			writer = PdfWriter.getInstance(document, new FileOutputStream(RESULT));
+			// step 3
+			document.open();
+			// step 4
+			int width = 400;
+			int height = 360;
+			PdfContentByte cb = writer.getDirectContent();
+			PdfTemplate tp1 = cb.createTemplate(width, height);
+			Graphics2D g2d1 = tp1.createGraphics(width, height, new DefaultFontMapper());
+			Rectangle2D r2d1 = new Rectangle2D.Double(0, 0, width, height);
+			getBarChart().draw(g2d1, r2d1);
+			g2d1.dispose();
+			cb.addTemplate(tp1, 100, 440);
+			PdfTemplate tp2 = cb.createTemplate(width, height);
+			Graphics2D g2d2 = tp2.createGraphics(width, height, new DefaultFontMapper());
+			Rectangle2D r2d2 = new Rectangle2D.Double(0, 0, width, height);
+			getBarChart().draw(g2d2, r2d2);
+			g2d2.dispose();
+			cb.addTemplate(tp2, 100, 40);
+		} catch (DocumentException de) {
+			de.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		// step 5
+		document.close();
+	}
+	
+	/**
+	 * Gets an example barchart.
+	 * 
+	 * @return a barchart
+	 */
+	public static JFreeChart getBarChart() {
+		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+		dataset.setValue(57, "students", "Asia");
+		dataset.setValue(36, "students", "Africa");
+		dataset.setValue(29, "students", "S-America");
+		dataset.setValue(17, "students", "N-America");
+		dataset.setValue(12, "students", "Australia");
+		return ChartFactory.createBarChart("T.U.F. Students", "continent",
+				"number of students", dataset, PlotOrientation.VERTICAL, false,
+				true, false);
+	}
+
+	/**
+	 * Gets an example piechart.
+	 * 
+	 * @return a piechart
+	 */
+	public static JFreeChart getPieChart() {
+		DefaultPieDataset dataset = new DefaultPieDataset();
+		dataset.setValue("Europe", 302);
+		dataset.setValue("Asia", 57);
+		dataset.setValue("Africa", 17);
+		dataset.setValue("S-America", 29);
+		dataset.setValue("N-America", 17);
+		dataset.setValue("Australia", 12);
+		return ChartFactory.createPieChart("Students per continent", dataset,
+				true, true, false);
+	}
+}

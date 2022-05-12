@@ -1,0 +1,71 @@
+/*
+ * This example was written by Bruno Lowagie, author of the book
+ * 'iText in Action' by Manning Publications (ISBN: 1932394796).
+ * You can use this example as inspiration for your own applications.
+ * The following license applies:
+ * http://www.1t3xt.com/about/copyright/index.php?page=MIT
+ */
+
+package questions.stamppages;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfSignatureAppearance;
+import com.lowagie.text.pdf.PdfStamper;
+
+public class CertificationSig {
+
+	public static final String KEYSTORE = "resources/questions/.keystore";
+	public static final String RESOURCE = "resources/questions/forms/to_be_signed.pdf";
+	public static final String RESULT = "results/questions/stamppages/certified_form.pdf";
+	
+	public static void main(String[] args) {
+
+		PdfReader reader;
+		try {
+			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+			ks.load(new FileInputStream(KEYSTORE), "f00b4r".toCharArray());
+			PrivateKey key = (PrivateKey) ks.getKey("foobar", "r4b00f"
+					.toCharArray());
+			Certificate[] chain = ks.getCertificateChain("foobar");
+			reader = new PdfReader(RESOURCE);
+			FileOutputStream os = new FileOutputStream(RESULT);
+			PdfStamper stamper = PdfStamper.createSignature(reader, os, '\0');
+			PdfSignatureAppearance appearance = stamper
+					.getSignatureAppearance();
+			appearance.setCrypto(key, chain, null,
+					PdfSignatureAppearance.SELF_SIGNED);
+			appearance.setCertificationLevel(PdfSignatureAppearance.CERTIFIED_FORM_FILLING);
+			appearance.setReason("It's personal.");
+			appearance.setLocation("Foobar");
+			appearance.setVisibleSignature("Certifier_Signature");
+			stamper.close();
+		} catch (KeyStoreException e) {
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (CertificateException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (UnrecoverableKeyException e) {
+			e.printStackTrace();
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+	}
+}
